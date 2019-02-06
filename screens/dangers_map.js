@@ -31,6 +31,28 @@ const limit_dist_to_risk = 10;
 // Vibration pattern
 const PATTERN = [300, 500] // wait, vibrate, wait, vibrate, ...
 
+// Initial region for map
+// It's necesary for load map
+initial_position = {
+
+  latitude: -39.565604,
+
+  longitude: -72.899991,
+
+}
+
+// Initial places marker
+places_markers = []
+
+initial_region = {
+
+  latitude: initial_position.latitude,
+  longitude: initial_position.longitude,
+  latitudeDelta: 0.0922,
+  longitudeDelta: 0.0421,
+
+}
+
 class Dangers_Map extends Component {
 
   //Constructor
@@ -40,9 +62,11 @@ class Dangers_Map extends Component {
 
     this.state = {
 
-      initialPosition: null,
+      initialPosition: initial_position,
 
-      places_markers: null,
+      places_markers: places_markers,
+
+      region: initial_region
 
     };
 
@@ -89,7 +113,7 @@ class Dangers_Map extends Component {
             // places with activated dangers
             var places_markers_from_server = [];
 
-            console.log(responseJson.length)
+            // console.log(responseJson.length)
 
             // Iterate over each danger
             for(var i = 0; i < responseJson.length; i++){
@@ -103,10 +127,6 @@ class Dangers_Map extends Component {
               }
 
             }
-
-            console.log(places_markers_from_server.length);
-
-            console.log(places_markers_from_server);
 
             // Update places markers (dangers)
             this.setState({
@@ -138,7 +158,26 @@ class Dangers_Map extends Component {
 
             // Get user position
             // Position has altitude!!! Maybe we can add altitude to location on map for distinguis between floors in a factory
-            this.setState({ initialPosition: {latitude: position.coords.latitude, longitude: position.coords.longitude }})
+            this.setState({ 
+
+              initialPosition: {
+
+                latitude: position.coords.latitude, 
+                longitude: position.coords.longitude
+
+              },
+
+              region: {
+
+                latitude: position.coords.latitude, 
+                longitude: position.coords.longitude, 
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+
+              }
+
+            })
+
 
             // Calculate the distance to risk_makers
             // If there is a marker
@@ -181,7 +220,8 @@ class Dangers_Map extends Component {
         (error) => console.log(new Date(), error),
         // {enableHighAccuracy: true, timeout: 100000}
         // If gps is not working, so uncomment next line
-        {timeout: 10000, enableHighAccuracy: true}
+        // {timeout: 10000, enableHighAccuracy: true}
+        {timeout: 100000000}
     ); 
 
   }
@@ -194,31 +234,16 @@ class Dangers_Map extends Component {
 
         <View style = {styles.container_flex}>
 
-          {
-
-            this.state.initialPosition === null 
-
-            ?
-
-            (<Text> Activa el GPS </Text>)
-
-            :
-
             <MapView
 
               showsUserLocation
               followsUserLocation
-              showsMyLocationButton
+              showsMyLocationButton = {true}
 
-              initialRegion={{
-                latitude: this.state.initialPosition.latitude,
-                longitude: this.state.initialPosition.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
+              initialRegion = {this.state.region}
 
               mapType = "satellite"
-              region = { this.state.initial_region }
+              region = { this.state.region }
               style = {{width: '100%', height: '100%'}}
 
             >
@@ -227,26 +252,22 @@ class Dangers_Map extends Component {
 
                 this.state.places_markers.map( (marker, index) => (
 
-                  <MapView.Marker
+                    <MapView.Marker
 
-                    key = {index}
+                      key = {index}
 
-                    coordinate = {{latitude: parseFloat(marker.latitude), longitude: parseFloat(marker.longitude) }}
+                      coordinate = {{latitude: parseFloat(marker.latitude), longitude: parseFloat(marker.longitude) }}
 
-                    onPress = {() => this.props.navigation.push("Danger_Details", {marker: marker})}
+                      onPress = {() => this.props.navigation.push("Danger_Details", {marker: marker})}
 
-                  >
-                  </MapView.Marker>
+                    >
+                    </MapView.Marker>
 
-                ))
+                  ))
 
               }
 
             </MapView>
-
-          }
-
-         
 
         </View>
 

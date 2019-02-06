@@ -283,14 +283,12 @@ class Add_Danger extends Component {
 
   }
 
-  renderSwitch(param){
+  // Render method
+  render() {
 
-    switch(param) {
+    return (
 
-      // Add photo
-      case 0:
-
-        return (
+        <View style = {styles.container_flex}>
 
           <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
 
@@ -308,7 +306,7 @@ class Add_Danger extends Component {
                 ? 
 
                 (
-                  <Text> Agrega una foto del peligro </Text>
+                  <Text> Agrega una foto </Text>
                 ) 
 
                 : 
@@ -322,187 +320,78 @@ class Add_Danger extends Component {
 
           </TouchableOpacity>
 
-        );
+          {
 
-      // Add comment
-      case 1: 
+            this.state.initialPosition === null 
 
-        return(
+            ?
+
+            (<ProgressBarAndroid /> )
+
+            :
+
+            <MapView
+
+              // showsUserLocation
+              // followsUserLocation
+              // showsMyLocationButton
+              // ref = {ref => { this.map0 = ref; }}
+              // ref={(element) => this.map = element} 
+
+              mapType = "satellite"
+
+              initialRegion={{
+                latitude: this.state.initialPosition.latitude,
+                longitude: this.state.initialPosition.longitude,
+                latitudeDelta: 0.001,
+                longitudeDelta: 0.001,
+              }}
+
+              // showUserLocation
+              region = { this.state.initial_region }
+              style = {{width: '100%', height: '30%'}}
+
+            >
+
+              <MapView.Marker
+                draggable
+                coordinate = {this.state.initialPosition}
+                pinColor = {"#474744"}
+                onDragEnd={(e) => this.setState({ initialPosition: e.nativeEvent.coordinate })}
+              />
+
+            </MapView>
+
+          }
+
+          <Text>
+
+            Manten presionado el marcador amarillo para cambiarlo de ubicación
+
+          </Text>
 
           <TextInput
             multiline={true}
             numberOfLines={4}
-            placeholder = "Agregar algún comentario sobre el peligro"
-            style={{textAlign: "center", borderRadius: 50, height: 100, width: "80%", borderColor: 'gray', borderWidth: 1, margin: 40, padding: 5}}
+            placeholder = "Agregar algún comentario"
+            style={{height: 100, width: "80%", borderColor: 'gray', borderWidth: 1, margin: 40}}
             onChangeText={(text) => this.setState({text})}
             value={this.state.text}
             maxLength={2000}
           />
 
-        )
-
-      // Add map
-      case 2:
-
-        return (
-
-          // {
-
-              this.state.initialPosition === null 
-
-            ?
-
-              (<ProgressBarAndroid /> )
-
-            :
-
-              // <View style = {styles.container_flex}>
-
-                <MapView
-
-                  mapType = "satellite"
-
-                  initialRegion={{
-                    latitude: this.state.initialPosition.latitude,
-                    longitude: this.state.initialPosition.longitude,
-                    latitudeDelta: 0.001,
-                    longitudeDelta: 0.001,
-                  }}
-
-                  // showUserLocation
-                  region = { this.state.initial_region }
-                  style = {{width: '100%', height: '85%'}}
-
-                >
-
-                  <MapView.Marker
-                    draggable
-                    coordinate = {this.state.initialPosition}
-                    pinColor = {"#474744"}
-                    onDragEnd={(e) => this.setState({ initialPosition: e.nativeEvent.coordinate })}
-                    // style = {{zindex: -1}}
-                  />
-
-                  <Text style={{ color: "white", "textAlign": 'center', margin: 50,"fontWeight": 'bold', 'textDecorationStyle':'solid'}}>
-
-                    Manten presionado el marcador amarillo para poder moverlo
-
-                  </Text>
-
-                </MapView>
-
-                
-
-            // </View>
-
-        );
-
-      // Add danger button
-      case 3:
-
-        return(
-
           <Button
 
-              outline
+            raised
 
-              title = {"Agregar peligro"}
+            title = {"Agregar peligro"}
 
-              onPress = {this.manage_click.bind(this)}
+            onPress = {this.manage_click.bind(this)}
 
-              buttonStyle={{
+            buttonStyle={styles.buttonStyle}
 
-                backgroundColor: "#3f5fe0",
-                // backgroundColor: 'rgba(255, 184, 0, 0.5)',
-                width: 300,
-                height: 80,
-                borderColor: "transparent",
-                borderWidth: 0,
-                borderRadius: 25,
-                margin: 80,
-                borderColor: "black",
-                borderWidth: 2,
+          />
 
-              }}
-
-            />
-
-        )
-
-    }
-
-  }
-
-  next_index(){
-
-    // define new index
-    var new_index = this.state.index >= 3 ? 3 : this.state.index + 1;
-
-    // Set state
-    this.setState({
-
-      // Set state to photo
-      index: new_index,
-
-    });
-
-  }
-
-  previous_index(){
-
-    // define new index
-    var new_index = this.state.index <= 0 ? 0 : this.state.index - 1;
-
-    // Set state
-    this.setState({
-
-      // Set state to photo
-      index: new_index,
-
-    });
-
-  }
-  // Render method
-  render() {
-
-    return (
-
-        <View style = {styles.container_flex}>
-
-          {this.renderSwitch(this.state.index)}
-
-        
-
-          <View style = {{flex: 0, flexDirection: "row"}}>
-
-            <Button
-              outline
-              title = "Anterior"
-              onPress = {this.previous_index.bind(this)}
-              buttonStyle={{ 
-                backgroundColor: "#3f5fe0",
-                borderRadius: 20,
-                // width: 300,
-                // height: 45
-                margin: 10,
-              }}
-            />
-
-            <Button
-              outline
-              title = "Siguiente"
-              onPress = {this.next_index.bind(this)}
-              buttonStyle={{ 
-                backgroundColor: "#3f5fe0",
-                borderRadius: 20,
-                // width: 300,
-                // height: 45
-                margin: 10,
-              }}
-            />
-
-          </View>
-          
         </View>
 
     );
@@ -545,12 +434,11 @@ const styles = StyleSheet.create({
     borderWidth: 1 / PixelRatio.get(),
     justifyContent: 'center',
     alignItems: 'center',
-    // margin: 50,
   },
   avatar: {
-    borderRadius: 30,
-    width: 300,
-    height: 300,
+    borderRadius: 75,
+    width: 150,
+    height: 150,
   },
 
 })

@@ -86,13 +86,12 @@ class HelloWorldApp extends Component {
   // Manage danger map
   dangers_map(){
 
-    // Navitage to next page
-    this.props.navigation.push("Dangers_Map"); 
+    // Analize if network and GPS is activated
+    this.analize_network_connection_and_GPS("Dangers_Map");
 
   }
 
-  // manage click on button 
-  manage_click(){
+  analize_network_connection_and_GPS(go_to){
 
     // initialize network connection variable
     var connection_state = false;
@@ -136,7 +135,7 @@ class HelloWorldApp extends Component {
         if(connection_state && gps_state){
 
           // Navitage to next page
-          this.props.navigation.push("Add_Danger");     
+          this.props.navigation.push(go_to);     
 
         };
 
@@ -159,6 +158,13 @@ class HelloWorldApp extends Component {
     });
 
   }
+  // manage click on button 
+  manage_click(){
+
+    // Analize if network and GPS is activated
+    this.analize_network_connection_and_GPS("Add_Danger");
+
+  }
 
   // Render method
   render() {
@@ -176,7 +182,7 @@ class HelloWorldApp extends Component {
 
           <Button
 
-            raised
+            outline
 
             title = {"Informar peligro"}
 
@@ -187,7 +193,7 @@ class HelloWorldApp extends Component {
 
           <Button
 
-            raised
+            outline
 
             title = {"Ver mapa de peligros"}
 
@@ -229,11 +235,11 @@ const styles = StyleSheet.create({
   buttonStyle: {
     backgroundColor: "#3f5fe0",
     width: 300,
-    height: 45,
-    // borderColor: "transparent",
-    borderWidth: 0,
-    // borderRadius: 5
-    margin: 2,
+    height: 75,
+    borderColor: "white",
+    borderWidth: 2,
+    borderRadius: 50,
+    margin: 10,
     // borderColor: "red"
   }
 

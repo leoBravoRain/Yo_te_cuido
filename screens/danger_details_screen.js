@@ -70,24 +70,22 @@ class Danger_Details extends Component {
 
     // Add select photo method
     this.deactivate_danger = this.deactivate_danger.bind(this)
-  
+    this.deactivate_danger_server = this.deactivate_danger_server.bind(this);
   }
 
   componentWillMount(){
 
   }
 
-  // Manage danger map
-  deactivate_danger(){
 
-    // Alert.alert("Deactivate danger");
+  deactivate_danger_server(){
 
     // Comunicate to server for deactivate
     // Add danger to server
     // Add video of place to server
     const url_server = "http://yotecuido.pythonanywhere.com/update_danger/" + this.props.navigation.state.params.marker.id;
 
-    console.log(url_server);
+    // console.log(url_server);
 
     fetch(url_server, {
       method: 'GET',
@@ -113,7 +111,31 @@ class Danger_Details extends Component {
     }); ;
 
     // Go no map page
-    this.props.navigation.push("Dangers_Map"); 
+    this.props.navigation.push("Home"); 
+
+  }
+  // Manage danger map
+  deactivate_danger(){
+
+    Alert.alert(
+      'Desactivar Peligro',
+      '¿Estas seguro que quieres desactivar el peligro? \n \n ¡Ya no aparecerá en el mapa!'
+      ,
+      [
+        {
+          text: 'Cancelar',
+          // onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+
+        {text: 'Estoy seguro', onPress: 
+
+          () => this.deactivate_danger_server()
+
+        },
+      ],
+      {cancelable: false},
+    );
 
   }
 
@@ -133,6 +155,7 @@ class Danger_Details extends Component {
               alignSelf: 'stretch',
               width: undefined,
               height: undefined,
+              margin: 10
               // borderRadius: 10,
             }}
             PlaceholderContent={<ActivityIndicator />}
@@ -147,9 +170,9 @@ class Danger_Details extends Component {
 
           <Button
 
-            raised
+            outline
 
-            title = {"Peligro arreglado"}
+            title = {"Desactivar peligro"}
 
             onPress = {this.deactivate_danger.bind(this)}
 
@@ -190,7 +213,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
     borderWidth: 0,
     margin: 30,
-    // borderRadius: 5
+    borderRadius: 50
   },
 
   avatarContainer: {

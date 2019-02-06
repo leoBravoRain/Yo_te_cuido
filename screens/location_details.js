@@ -114,7 +114,7 @@ export default class Location_Details extends Component {
 
           <Button
 
-            raised
+            outline
 
             title="Próximo video"
 
@@ -128,7 +128,7 @@ export default class Location_Details extends Component {
               borderColor: "transparent",
               borderWidth: 0,
               margin: 30,
-              // borderRadius: 5
+              borderRadius: 50
 
             }}
           />
