@@ -13,7 +13,7 @@ import {
   Picker
 } from 'react-native';
 
-import { Button } from 'react-native-elements';
+import { Button, Icon } from 'react-native-elements';
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
 import { NavigationActions, withNavigation } from 'react-navigation';
 import GPSState from 'react-native-gps-state';
@@ -175,9 +175,10 @@ class HelloWorldApp extends Component {
 
         <ImageBackground 
           // source={{uri: 'https://previews.123rf.com/images/stocking/stocking1209/stocking120900044/15271577-portrait-of-an-happy-worker-in-a-factory.jpg'}}
-          source = {{uri: "https://image1.masterfile.com/getImage/NjExMy0wODgwNTU1NmVuLjAwMDAwMDAw=AJv0-3/6113-08805556en_Masterfile.jpg"}}
+          source = {require('../images/background.jpg')}
           style={styles.image_background}
-          resizeMode='cover' 
+          resizeMode='cover'
+          blurRadius={0.4} 
           >
 
           <Button
@@ -189,6 +190,14 @@ class HelloWorldApp extends Component {
             onPress = {this.manage_click.bind(this)}
 
             buttonStyle={styles.buttonStyle}
+
+            icon = {{
+
+              name : "comment",
+              type: "font-awesome",
+              size: 30
+
+            }}
           />
 
           <Button
@@ -200,7 +209,50 @@ class HelloWorldApp extends Component {
             onPress = {this.dangers_map.bind(this)}
 
             buttonStyle={styles.buttonStyle}
+
+            icon = {{
+
+              name: "map",
+              type: "font-awesome",
+              size: 30
+
+            }}
+
           />
+
+          <Button
+
+            outline
+
+            title = {"Envíanos tus sugerencias"}
+
+            onPress = {() => this.props.navigation.push("Send_Suggestions")}
+
+            buttonStyle={{
+
+              // opacity: 0.8,
+              backgroundColor: "rgba(158,133,0,1)",
+              // width: 200,
+              // height: 75,
+              borderColor: "white",
+              borderWidth: 2,
+              borderRadius: 50,
+              margin: 10,
+              bottom: 10,
+              padding: 15,
+
+            }}
+
+            icon = {{
+
+              name: "paper-plane",
+              type: "font-awesome",
+              size: 20
+
+            }}
+
+          />
+
 
         </ImageBackground>
 

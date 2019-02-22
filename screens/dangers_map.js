@@ -372,10 +372,6 @@ class Dangers_Map extends Component {
     // If selected value is different from current value
     if(value != current_filter_value){
 
-      // console.log(source);
-
-      // console.log(value);
-
       // new markers
       var places_markers_filters = [];
 
@@ -473,33 +469,6 @@ class Dangers_Map extends Component {
           }        
 
         }
-
-
-        // if(value == "todos"){
-
-        //   if(source == "danger_state_filter" && marker_filter.area_name == this.state.area_filter ){
-
-        //     // add marker to list
-        //     places_markers_filters.push(marker_filter);
-
-        //   }
-
-        //   else if(source == "area_filter" && marker_filter.state == this.state.danger_state_filter ){
-
-        //     // add marker to list
-        //     places_markers_filters.push(marker_filter);
-
-        //   }
-
-        // }
-
-        // // If marker has the state value selected
-        // else if(marker_filter.state == this.state.danger_state_filter && marker_filter.area_name == this.state.area_filter){
-
-        //   // add marker to list
-        //   places_markers_filters.push(marker_filter);
-
-        // }
 
       }
 

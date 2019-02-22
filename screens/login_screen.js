@@ -79,10 +79,32 @@ class Login extends Component {
 
         <ImageBackground 
           // source={{uri: 'https://previews.123rf.com/images/stocking/stocking1209/stocking120900044/15271577-portrait-of-an-happy-worker-in-a-factory.jpg'}}
-          source = {{uri: "https://image1.masterfile.com/getImage/NjExMy0wODgwNTU1NmVuLjAwMDAwMDAw=AJv0-3/6113-08805556en_Masterfile.jpg"}}
+          source = {require('../images/background.jpg')}
           style={styles.image_background}
-          resizeMode='cover' 
+          resizeMode='cover'
+          blurRadius={0.4} 
         >
+
+        <Text 
+
+          style = {{
+
+            marginBottom: 30,
+            color: "white",
+            fontSize: 40,
+            fontWeight: '500',
+            backgroundColor: 'rgba(63,95,224,0.7)',
+            padding: 20,
+            borderRadius: 50,
+            elevation:6,
+
+          }}
+         
+         >
+
+          Yo te cuido
+
+        </Text>
 
         <View style = {styles.input_icon_container}>
 
