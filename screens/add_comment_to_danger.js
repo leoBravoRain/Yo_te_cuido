@@ -24,27 +24,31 @@ import ImagePicker from 'react-native-image-picker';
 import MapView from 'react-native-maps'
 
 // Index for item form
-index = 0;
+var index = 0;
 
-class Add_Danger extends Component {
+// Max Index for add danger button
+// 0: add photo
+// 1: add comment
+var max_form_items = 2;
+
+class Add_Comment_To_Danger extends Component {
 
   // Initial state
   state = {
     avatarSource: null,
-    videoSource: null,
     index: index,
   };
 
   // Options for header bar
   static navigationOptions = ({ navigation }) => {
     return {
-      title: "Informar peligro",
+      title: "Agregar comentario al peligro",
       headerRight: (
         <Icon
           raised
           name='map'
           type='font-awesome'  
-          onPress={() => navigation.navigate('Dangers_Map')}
+          onPress={() => navigation.push('Dangers_Map')}
           color='#3f5fe0'
         />
       ),
@@ -67,7 +71,6 @@ class Add_Danger extends Component {
 
     this.state = {
 
-      initialPosition: null,
       avatarSource: null,
       text: null, 
       index: index,
@@ -76,7 +79,7 @@ class Add_Danger extends Component {
 
     // Add select photo method
     this.selectPhotoTapped = this.selectPhotoTapped.bind(this);
-  
+    
   }
 
   componentDidMount(){
@@ -85,22 +88,6 @@ class Add_Danger extends Component {
 
   // Componente will mount
   componentWillMount(){
-
-    // Get user position
-    navigator.geolocation.getCurrentPosition(
-      
-        (position) => {
-
-            // Position has altitude!!! Maybe we can add altitude to location on map for distinguis between floors in a factory
-            this.setState({ initialPosition: {latitude: position.coords.latitude, longitude: position.coords.longitude }})
-
-        },
-        (error) => console.log(new Date(), error),
-        // {enableHighAccuracy: true, timeout: 100000}
-        // If gps is not working, so uncomment next line
-        // {timeout: 10000, enableHighAccuracy: true}
-        {timeout: 100000000}
-    ); 
 
   }
 
@@ -152,7 +139,7 @@ class Add_Danger extends Component {
 
     // Add danger to server
     // Add video of place to server
-    const url_server = "http://yotecuido.pythonanywhere.com/dangers/";
+    const url_server = "http://yotecuido.pythonanywhere.com/danger_details/1/";
 
     // Crete form for post
     const form = new FormData();
@@ -184,28 +171,6 @@ class Add_Danger extends Component {
       message = "Debes agregar una foto"
 
     }
-  
-    // If location is defined
-    if(this.state.initialPosition != null ){
-
-      // Add latitude
-      form.append('latitude', this.state.initialPosition.latitude);
-
-      // Add longitude
-      form.append('longitude', this.state.initialPosition.longitude);    
-
-    }
-
-    // If location is null
-    else{
-
-      // Variable for send data to server
-      every_data_filled = false;
-
-      // Message for user
-      message = "Tenemos problemas para obtener tu ubicación";
-
-    }
 
     // If there is a comment
     if(this.state.text != null){
@@ -232,6 +197,9 @@ class Add_Danger extends Component {
       // Add state
       form.append('state', true);
 
+      // Add danger
+      form.append('danger', this.props.navigation.state.params.marker.id);
+
       // Send data to server
       fetch(url_server, {
 
@@ -250,7 +218,7 @@ class Add_Danger extends Component {
       // Alert for response user
       Alert.alert(
         'Alerta de peligro',
-        'Acabas de agregar un peligro al mapa',
+        'Acabas de agregar un comentario al peligro',
         [
           {text: 'Seguiré atento a otros posibles peligros', onPress: () => console.log('Ask me later pressed')},
         ],
@@ -283,12 +251,14 @@ class Add_Danger extends Component {
 
   }
 
-  // Render method
-  render() {
+  renderSwitch(param){
 
-    return (
+    switch(param) {
 
-        <View style = {styles.container_flex}>
+      // Add photo
+      case 0:
+
+        return (
 
           <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
 
@@ -306,7 +276,7 @@ class Add_Danger extends Component {
                 ? 
 
                 (
-                  <Text> Agrega una foto </Text>
+                  <Text> Agrega una foto del peligro </Text>
                 ) 
 
                 : 
@@ -320,78 +290,160 @@ class Add_Danger extends Component {
 
           </TouchableOpacity>
 
-          {
+        );
 
-            this.state.initialPosition === null 
+      // Add comment
+      case 1: 
 
-            ?
-
-            (<ProgressBarAndroid /> )
-
-            :
-
-            <MapView
-
-              // showsUserLocation
-              // followsUserLocation
-              // showsMyLocationButton
-              // ref = {ref => { this.map0 = ref; }}
-              // ref={(element) => this.map = element} 
-
-              mapType = "satellite"
-
-              initialRegion={{
-                latitude: this.state.initialPosition.latitude,
-                longitude: this.state.initialPosition.longitude,
-                latitudeDelta: 0.001,
-                longitudeDelta: 0.001,
-              }}
-
-              // showUserLocation
-              region = { this.state.initial_region }
-              style = {{width: '100%', height: '30%'}}
-
-            >
-
-              <MapView.Marker
-                draggable
-                coordinate = {this.state.initialPosition}
-                pinColor = {"#474744"}
-                onDragEnd={(e) => this.setState({ initialPosition: e.nativeEvent.coordinate })}
-              />
-
-            </MapView>
-
-          }
-
-          <Text>
-
-            Manten presionado el marcador amarillo para cambiarlo de ubicación
-
-          </Text>
+        return(
 
           <TextInput
             multiline={true}
             numberOfLines={4}
-            placeholder = "Agregar algún comentario"
-            style={{height: 100, width: "80%", borderColor: 'gray', borderWidth: 1, margin: 40}}
+            placeholder = "Agregar algún comentario sobre el peligro"
+            style={{textAlign: "center", borderRadius: 50, height: 100, width: "80%", borderColor: 'gray', borderWidth: 1, margin: 40, padding: 5}}
             onChangeText={(text) => this.setState({text})}
             value={this.state.text}
             maxLength={2000}
           />
 
+        )
+
+      // Add danger button
+      case 2:
+
+        return(
+
           <Button
 
-            raised
+              outline
 
-            title = {"Agregar peligro"}
+              title = {"Agregar comentario"}
 
-            onPress = {this.manage_click.bind(this)}
+              onPress = {this.manage_click.bind(this)}
 
-            buttonStyle={styles.buttonStyle}
+              buttonStyle={{
 
-          />
+                backgroundColor: "#3f5fe0",
+                // backgroundColor: 'rgba(255, 184, 0, 0.5)',
+                width: 300,
+                height: 80,
+                borderColor: "transparent",
+                borderWidth: 0,
+                borderRadius: 25,
+                margin: 80,
+                borderColor: "black",
+                borderWidth: 2,
 
+              }}
+
+            />
+
+        )
+
+    }
+
+  }
+
+  next_index(){
+
+    // define new index
+    var new_index = this.state.index >= max_form_items ? max_form_items : this.state.index + 1;
+
+    // Set state
+    this.setState({
+
+      // Set state to photo
+      index: new_index,
+
+    });
+
+  }
+
+  previous_index(){
+
+    // define new index
+    var new_index = this.state.index <= 0 ? 0 : this.state.index - 1;
+
+    // Set state
+    this.setState({
+
+      // Set state to photo
+      index: new_index,
+
+    });
+
+  }
+
+   render_previous_button(){
+
+    // If there isn't index before
+    if(this.state.index > 0){
+
+      return (
+
+        <Button
+          outline
+          title = "Anterior"
+          onPress = {this.previous_index.bind(this)}
+          buttonStyle={{ 
+            backgroundColor: "#3f5fe0",
+            borderRadius: 20,
+            // width: 300,
+            // height: 45
+            margin: 10,
+          }}
+        />
+
+      )
+
+    }
+
+  }
+
+  render_next_button(){
+
+    // If there isn't index before
+    if(this.state.index < max_form_items){
+
+      return (
+
+        <Button
+          outline
+          title = "Siguiente"
+          onPress = {this.next_index.bind(this)}
+          buttonStyle={{ 
+            backgroundColor: "#3f5fe0",
+            borderRadius: 20,
+            // width: 300,
+            // height: 45
+            margin: 10,
+          }}
+        />
+
+      )
+
+    }
+
+  }
+
+  // Render method
+  render() {
+
+    return (
+
+        <View style = {styles.container_flex}>
+
+          {this.renderSwitch(this.state.index)}
+        
+          <View style = {{flex: 0, flexDirection: "row"}}>
+
+            { this.render_previous_button() }
+
+            { this.render_next_button() }
+
+          </View>
+          
         </View>
 
     );
@@ -434,13 +486,14 @@ const styles = StyleSheet.create({
     borderWidth: 1 / PixelRatio.get(),
     justifyContent: 'center',
     alignItems: 'center',
+    // margin: 50,
   },
   avatar: {
-    borderRadius: 75,
-    width: 150,
-    height: 150,
+    borderRadius: 30,
+    width: 300,
+    height: 300,
   },
 
 })
 
-export default withNavigation(Add_Danger);
+export default withNavigation(Add_Comment_To_Danger);

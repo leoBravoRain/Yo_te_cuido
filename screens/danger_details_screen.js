@@ -15,12 +15,15 @@ import {
   PixelRatio,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator
+  ActivityIndicator,
+  Dimensions,
+  // Modal
+  // ScrollView
+  // TouchableHighlight
 } from 'react-native';
 
-import { Button, Icon, Card } from 'react-native-elements';
+import { Button, Icon, Card, Divider } from 'react-native-elements';
 import { NavigationActions, withNavigation } from 'react-navigation';
-
 
 class Danger_Details extends Component {
 
@@ -39,7 +42,7 @@ class Danger_Details extends Component {
           raised
           name='map'
           type='font-awesome'  
-          onPress={() => navigation.navigate('Dangers_Map')}
+          onPress={() => navigation.push('Dangers_Map')}
           color='#3f5fe0'
         />
       ),
@@ -64,78 +67,133 @@ class Danger_Details extends Component {
 
       initialPosition: null,
       avatarSource: null,
-      text: null
+      text: null,
+      comments: null,
 
     };
 
     // Add select photo method
-    this.deactivate_danger = this.deactivate_danger.bind(this)
-    this.deactivate_danger_server = this.deactivate_danger_server.bind(this);
+    this.add_comment = this.add_comment.bind(this);
+    this.change_danger_state = this.change_danger_state.bind(this);
+
   }
 
   componentWillMount(){
 
+    console.log(this.props.navigation.state.params);
+
+
+    // get comments to danger from server
+
+    const url_server = "http://yotecuido.pythonanywhere.com/danger_details/" + this.props.navigation.state.params.marker.id;
+    
+    fetch(url_server)
+          .then((response) => response.json())
+          .then((responseJson) => {
+
+            // places with activated dangers
+            var comments = [];
+
+            // Parse date
+            var date = this.parse_date(this.props.navigation.state.params.marker.date);
+
+            // Define fitst comment object
+            var first_comment = {
+
+              id: this.props.navigation.state.params.marker.id,
+              date: date,
+              photo: this.props.navigation.state.params.marker.photo,
+              comment: this.props.navigation.state.params.marker.comment,
+              state: this.props.navigation.state.params.marker.state,
+              floor_number: this.props.navigation.state.params.marker.floor_number,
+
+            }
+
+            // add firt coment
+            comments.push(first_comment);
+
+            // Add each comments from server
+            for(var i = 0; i < responseJson.length; i++){
+
+              var comment_i = responseJson[i];
+
+              // parse date
+              comment_i.date = this.parse_date(comment_i.date);
+
+              // add comment
+              comments.push(comment_i);
+
+            }
+
+            // Update places markers (dangers)
+            this.setState({
+
+              comments: comments,
+
+            });
+
+          })
+          .catch((error) => {
+            console.error(error);
+          });  
+
+
   }
 
+  // Parse date for comments
+  parse_date(date_string){
 
-  deactivate_danger_server(){
+    // format options
+    // const options = { year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "numeric"};
 
-    // Comunicate to server for deactivate
-    // Add danger to server
-    // Add video of place to server
-    const url_server = "http://yotecuido.pythonanywhere.com/update_danger/" + this.props.navigation.state.params.marker.id;
+    // Create object
+    // var date = new Date(date_string).toLocaleDateString("es-ES", options);
+    const date = new Date(date_string).toUTCString();
 
-    // console.log(url_server);
 
-    fetch(url_server, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    }).then(() => 
-
-      // Alert for response user
-      Alert.alert(
-        'Peligro arreglado',
-        'El peligro ya no aparecerá en el mapa',
-        [
-          {text: 'Entendido', onPress: () => console.log('Ask me later pressed')},
-        ],
-        { cancelable: false }
-      )
-
-    )
-    .catch((error) => {
-      console.error(error);
-    }); ;
-
-    // Go no map page
-    this.props.navigation.push("Home"); 
+    // return value
+    return date;
 
   }
-  // Manage danger map
-  deactivate_danger(){
 
-    Alert.alert(
-      'Desactivar Peligro',
-      '¿Estas seguro que quieres desactivar el peligro? \n \n ¡Ya no aparecerá en el mapa!'
-      ,
-      [
-        {
-          text: 'Cancelar',
-          // onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
+  // Add comment to danger
+  add_comment(){
 
-        {text: 'Estoy seguro', onPress: 
+    // Go to add comment to danger
+    this.props.navigation.push("Add_Comment_To_Danger", {marker: this.props.navigation.state.params.marker}); 
 
-          () => this.deactivate_danger_server()
+  }
 
-        },
-      ],
-      {cancelable: false},
-    );
+  // Change comment state
+  change_danger_state(){
+
+    // Go to change danger state
+    this.props.navigation.push("Change_Danger_State", {marker: this.props.navigation.state.params.marker}); 
+
+
+  }
+
+  // Select pin color depending of its state
+  select_pin_color(marker_state){
+
+    switch(marker_state){
+
+      case "sin_control":
+
+        return "red"
+        break;
+
+      case "controlado":
+
+        return "rgba(245, 215, 110, 1)"
+        break;
+
+      case "eliminado":
+
+        return "green"
+        break;
+
+    }
 
   }
 
@@ -146,37 +204,148 @@ class Danger_Details extends Component {
 
         <View style = {styles.container_flex}>
 
-          <Image
-            source={{ uri: this.props.navigation.state.params.marker.photo }}
-            style={{ 
-              // width: 400, 
-              // height: 400,
-              flex: 3,
-              alignSelf: 'stretch',
-              width: undefined,
-              height: undefined,
-              margin: 10
-              // borderRadius: 10,
-            }}
-            PlaceholderContent={<ActivityIndicator />}
-            resizeMode="contain"
-          />
+          {/*  Row for labels */}
+          <View style = {{elevation:5, flex: 0, flexWrap: "wrap",flexDirection: "row", width: Dimensions.get('window').width}}>            
 
-          <Text style = {{margin: 10, fontSize: 20}} > 
+            {/*  Risk state */}
+            <Text style = {{ margin: 5, fontSize: 15, borderRadius: 10, padding: 8, color: "white", backgroundColor: this.select_pin_color(this.props.navigation.state.params.marker.state) }} >
 
-           { this.props.navigation.state.params.marker.comment }
+              {this.props.navigation.state.params.marker.state.replace("_"," ").toUpperCase()}
 
-          </Text>
+            </Text>
+
+            {/*  Floor number */}
+            <Text style = {{ margin: 5, fontSize: 15, borderRadius: 10, padding: 8, color: "white", backgroundColor: "blue"}}>
+
+              Piso: {this.props.navigation.state.params.marker.floor_number}
+
+            </Text>
+
+              {/*  Id of managment system */}
+
+              {
+
+                this.props.navigation.state.params.marker.id_management_system.length > 0 && 
+
+                    <Text style = {{ margin: 5, fontSize: 15, borderRadius: 10, padding: 8, color: "white", backgroundColor: "blue"}}>
+
+                      Nº sistema gestión: {this.props.navigation.state.params.marker.id_management_system}
+
+                    </Text>     
+
+              }
+
+              {/*  Area */}
+
+              {
+
+                this.props.navigation.state.params.area_name != null && 
+
+                    <Text style = {{ margin: 5, fontSize: 15, borderRadius: 10, padding: 8, color: "white", backgroundColor: "blue"}}>
+
+                      Área: {this.props.navigation.state.params.area_name}
+
+                    </Text>     
+
+              }
+
+            <Divider style={{borderColor: "gray",borderWidth: 1, width: '100%' }} />
+
+          </View>
+
+          <ScrollView style = {{height: 10, width: '100%'}}>
+
+            <View>
+
+              { 
+
+                this.state.comments != null 
+
+                ?
+
+                this.state.comments.map( (comment, index) => (
+
+                    <View key = {index}>
+
+                      <Text>
+
+                        {comment.date}
+
+                      </Text>
+
+                      <TouchableOpacity 
+
+                        onPress = {()=> 
+
+                          // Navitage to image details
+                          this.props.navigation.push("Image_Details", {image_uri: comment.photo})   
+
+                        } 
+
+                      >
+
+                      <Image
+                        source={{ uri: comment.photo }}
+                        style={{ 
+                          // width: 400, 
+                          // height: 400,
+                          flex: 3,
+                          alignSelf: 'stretch',
+                          width: undefined,
+                          height: 250,
+                          margin: 10
+                          // borderRadius: 10,
+                        }}
+                        PlaceholderContent={<ActivityIndicator />}
+                        resizeMode="contain"
+
+                      /> 
+
+                      </TouchableOpacity>
+
+                      <Text style = {{margin: 10, fontSize: 20}} > 
+
+                       { comment.comment }
+
+                      </Text>
+
+                      <Divider style={{ backgroundColor: 'gray', marginBottom: 30, marginTop: 20 }} />
+
+                    </View>
+
+                  ))
+
+                  :
+
+                  <ActivityIndicator/>
+
+              }
+
+            </View>
+
+          </ScrollView>
 
           <Button
 
             outline
 
-            title = {"Desactivar peligro"}
+            title = {"Agregar comentario"}
 
-            onPress = {this.deactivate_danger.bind(this)}
+            onPress = {this.add_comment.bind(this)}
 
             buttonStyle={styles.buttonStyle}
+          />
+
+          <Button
+
+            outline
+
+            title = {"Cambiar estado de peligro"}
+
+            onPress = {this.change_danger_state.bind(this)}
+
+            buttonStyle={styles.buttonStyle}
+
           />
 
         </View>
@@ -212,7 +381,7 @@ const styles = StyleSheet.create({
     height: 45,
     borderColor: "transparent",
     borderWidth: 0,
-    margin: 30,
+    margin: 5,
     borderRadius: 50
   },
 

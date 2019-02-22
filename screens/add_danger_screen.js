@@ -24,16 +24,29 @@ import ImagePicker from 'react-native-image-picker';
 import MapView from 'react-native-maps'
 
 // Index for item form
-index = 0;
+var index = 0;
+
+// Max Index for add danger button
+// 0: add photo
+// 1: add comment
+// 2: add state
+// 3: add Id management system
+// 4: add area of company
+// 5: add floor number
+// 6: add map
+var max_form_items = 7;
+
+
+// Danger state definition
+var danger_state_definition = {
+
+  'sin_control': "No tiene ninguna medida de control actualmente",
+  'controlado': "Presenta alguna medida de control actualmente",
+  'eliminado': "El peligro ya no existe",
+}
 
 class Add_Danger extends Component {
 
-  // Initial state
-  state = {
-    avatarSource: null,
-    videoSource: null,
-    index: index,
-  };
 
   // Options for header bar
   static navigationOptions = ({ navigation }) => {
@@ -44,7 +57,7 @@ class Add_Danger extends Component {
           raised
           name='map'
           type='font-awesome'  
-          onPress={() => navigation.navigate('Dangers_Map')}
+          onPress={() => navigation.push('Dangers_Map')}
           color='#3f5fe0'
         />
       ),
@@ -71,20 +84,63 @@ class Add_Danger extends Component {
       avatarSource: null,
       text: null, 
       index: index,
+      danger_state: "sin_control",
+      floor_number: null,
+      it_is_on_local_MS: "no",
+      id_management_system: null,
+      initial_areas_of_company: null,
+      area_of_company: null
 
     };
 
     // Add select photo method
     this.selectPhotoTapped = this.selectPhotoTapped.bind(this);
   
+
   }
 
   componentDidMount(){
+
+    // get areas of company
+    const url_area_server = "http://yotecuido.pythonanywhere.com/area_of_company";
+
+    fetch(url_area_server)
+      .then((response) => response.json())
+      .then((responseJson) => {
+
+        // console.log(responseJson);
+
+        // create dict for acces with id area
+        // id_area: area_name
+        // var areas_of_company = {};
+
+        // // Iterate over each area
+        // for(var i = 0; i < responseJson.length ; i++){
+
+        //   // push each area
+        //   areas_of_company[responseJson[i].id] = responseJson[i].area_name;
+
+        // };
+
+        // console.log(areas_of_company);
+
+        // Set state
+        this.setState({
+
+          // initial_areas_of_company: areas_of_company,
+          initial_areas_of_company: responseJson,
+
+        });
+
+        // console.log(initial_areas_of_company);
+
+      });
 
   }
 
   // Componente will mount
   componentWillMount(){
+
 
     // Get user position
     navigator.geolocation.getCurrentPosition(
@@ -168,7 +224,8 @@ class Add_Danger extends Component {
           uri: this.state.avatarSource.uri,
           type: this.state.avatarSource.type,
           name: this.state.avatarSource.fileName,
-          data: this.state.avatarSource.data
+          data: this.state.avatarSource.data,
+          // danger_state: 'sin_control',
 
       });
 
@@ -226,11 +283,73 @@ class Add_Danger extends Component {
 
     }
 
-    // It there are all data
+    // If there is floor number
+    if(this.state.floor_number != null){
+
+      // Add photo
+      form.append('floor_number', this.state.floor_number);
+
+    }
+
+    // If there is not photo
+    else{
+
+      // Variable for send data to server
+      every_data_filled = false;
+
+      // Message for user
+      message = "Debes agregar un piso al peligro"
+
+    }
+
+    // If there is Id on local MS
+    if(this.state.it_is_on_local_MS){
+
+      // If id is defined and length is more than 0
+      if(this.state.id_management_system != null && this.state.id_management_system.length > 0){
+
+        // Add id_management_system to form post
+        form.append('id_management_system', this.state.id_management_system);
+
+      }
+
+      // If there is not id
+      else{
+
+        // Variable for send data to server
+        every_data_filled = false;
+
+        // Message for user
+        message = "Si estas seguro que el peligro está agregado en el sistema de gestión de la empresa, DEBES agregar el ID";
+
+      }
+
+    }
+
+    // If there is area
+    if(this.state.area_of_company != null){
+
+      // Add photo
+      form.append('area_name', this.state.area_of_company);
+
+    }
+
+    // If there is not photo
+    else{
+
+      // Variable for send data to server
+      every_data_filled = false;
+
+      // Message for user
+      message = "Debes agregar un área al peligro"
+
+    }
+
+    // If there are all data
     if(every_data_filled){
 
       // Add state
-      form.append('state', true);
+      form.append('state', this.state.danger_state);
 
       // Send data to server
       fetch(url_server, {
@@ -339,10 +458,178 @@ class Add_Danger extends Component {
             maxLength={2000}
           />
 
-        )
+        );
+
+      // Add danger state
+      case 2:
+
+        return(
+
+          <View>
+
+            <Text style = {{margin: 40, fontSize: 25, fontWeight: 'bold', 'textAlign': "center"}} >
+
+              Selecciona el estado actual del peligro
+
+            </Text>
+
+            <Picker
+
+              selectedValue={this.state.danger_state}
+              style={{height: 30, width: 200, alignSelf: "center", margin: 30}}
+              onValueChange={(itemValue, itemIndex) =>
+
+                this.setState({danger_state: itemValue})
+
+              }>
+
+              <Picker.Item label="Sin control" value="sin_control" />
+
+              <Picker.Item label="Controlado" value="controlado" />
+
+              <Picker.Item label="Eliminado" value="eliminado" />
+
+            </Picker>
+
+            <Text style = {{ textAlign: "center" , "margin": 30}}>
+
+              {danger_state_definition[this.state.danger_state]}
+
+            </Text>
+
+          </View>
+
+        );
+
+      // Add id management system
+      case 3:
+
+        // Return component
+        return(
+
+          <View style = {{ alignItems: 'center'}}>
+
+            <Text style = {{ textAlign: "center" , margin: 30, fontWeight: 'bold', fontSize: 25}}>
+
+              ¿Se ha subido la condición al sistema de gestión de peligros de la empresa?
+
+            </Text>
+
+            <Picker
+
+              selectedValue={this.state.it_is_on_local_MS}
+              style={{height: 30, width: 200, alignSelf: "center", margin: 30}}
+              onValueChange={(itemValue, itemIndex) =>
+
+                {
+                  // console.log(itemValue);
+                  this.setState({it_is_on_local_MS: itemValue})
+                }
+              }
+
+              >
+
+              <Picker.Item label="No" value="no" />
+
+              <Picker.Item label="Si" value="si" />
+
+            </Picker>
+
+            {this.state.it_is_on_local_MS === "si" && 
+
+              <TextInput
+                multiline={true}
+                numberOfLines={4}
+                placeholder = "ID peligro en sistema de gestión de empresa"
+                style={{textAlign: "center", borderRadius: 50,  width: "80%", borderColor: 'gray', borderWidth: 1, margin: 10, padding: 15}}
+                onChangeText={(text) => this.setState({id_management_system: text})}
+                value={this.state.id_management_system}
+                maxLength={100}
+              />
+
+            }
+            
+          </View>
+
+        );
+
+      // Add area of company
+      case 4:
+
+        return(
+
+          <View>
+
+            <Text style = {{margin: 40, fontSize: 25, fontWeight: 'bold', 'textAlign': "center"}} >
+
+              Selecciona el área en donde se encuentra el peligro
+
+            </Text>
+
+            <Picker
+
+              selectedValue={this.state.area_of_company}
+              style={{height: 30, width: 200, alignSelf: "center", margin: 30}}
+              onValueChange={(itemValue, itemIndex) =>
+
+                this.setState({area_of_company: itemValue})
+
+              }>
+
+              {
+
+                this.state.initial_areas_of_company != null && 
+
+                  this.state.initial_areas_of_company.map((area, index) => (
+                         
+                    <Picker.Item key = {index} label = {area.area_name} value = {area.id} />
+
+                  ))
+
+              }
+
+            </Picker>
+
+          </View>
+
+        );
+
+      // Add floor number
+      case 5: 
+
+        return(
+
+          <View>
+
+            <Text style = {{ textAlign: "center" , margin: 30, fontWeight: 'bold', fontSize: 25}}>
+
+              ¿En qué piso se encuentra el peligro?
+
+            </Text>
+
+            <Text style = {{textAlign: 'center',margin: 20}} >
+
+              Ejemplo: Si es que el peligro se encuentra en 
+              el segundo piso, entonces debes escribir 2.
+
+            </Text>
+
+            <TextInput
+              multiline={true}
+              numberOfLines={4}
+              placeholder = "Agregar el piso en el que se encuentra el peligro"
+              style={{textAlign: "center", borderRadius: 50, height: 100, width: "80%", borderColor: 'gray', borderWidth: 1, margin: 40, padding: 5}}
+              onChangeText={(text) => this.setState({floor_number: text})}
+              value={this.state.floor_number}
+              maxLength={2000}
+            />
+
+          </View>
+
+        );
 
       // Add map
-      case 2:
+      case 6:
 
         return (
 
@@ -366,7 +653,7 @@ class Add_Danger extends Component {
                     latitude: this.state.initialPosition.latitude,
                     longitude: this.state.initialPosition.longitude,
                     latitudeDelta: 0.001,
-                    longitudeDelta: 0.001,
+                    longitudeDelta: 0.001, 
                   }}
 
                   // showUserLocation
@@ -383,7 +670,17 @@ class Add_Danger extends Component {
                     // style = {{zindex: -1}}
                   />
 
-                  <Text style={{ color: "white", "textAlign": 'center', margin: 50,"fontWeight": 'bold', 'textDecorationStyle':'solid'}}>
+                  <Text style={{ 
+
+                    color: "white", 
+                    "textAlign": 'center', 
+                    margin: 50,
+                    fontWeight: 'bold', 
+                    textDecorationStyle:'solid',
+                    backgroundColor: 'rgba(63, 95, 224,0.5)'
+
+
+                  }}>
 
                     Manten presionado el marcador amarillo para poder moverlo
 
@@ -398,7 +695,7 @@ class Add_Danger extends Component {
         );
 
       // Add danger button
-      case 3:
+      case max_form_items:
 
         return(
 
@@ -433,10 +730,11 @@ class Add_Danger extends Component {
 
   }
 
+
   next_index(){
 
     // define new index
-    var new_index = this.state.index >= 3 ? 3 : this.state.index + 1;
+    var new_index = this.state.index >= max_form_items ? max_form_items : this.state.index + 1;
 
     // Set state
     this.setState({
@@ -462,6 +760,59 @@ class Add_Danger extends Component {
     });
 
   }
+
+  render_previous_button(){
+
+    // If there isn't index before
+    if(this.state.index > 0){
+
+      return (
+
+        <Button
+          outline
+          title = "Anterior"
+          onPress = {this.previous_index.bind(this)}
+          buttonStyle = {{ 
+            backgroundColor: "#3f5fe0",
+            borderRadius: 20,
+            // width: 300,
+            // height: 45
+            margin: 10,
+          }}
+        />
+
+      )
+
+    }
+
+  }
+
+  render_next_button(){
+
+    // If there isn't index before
+    if(this.state.index < max_form_items){
+
+      return (
+
+        <Button
+          outline
+          title = "Siguiente"
+          onPress = {this.next_index.bind(this)}
+          buttonStyle = {{ 
+            backgroundColor: "#3f5fe0",
+            borderRadius: 20,
+            // width: 300,
+            // height: 45
+            margin: 10,
+          }}
+        />
+
+      )
+
+    }
+
+  }
+
   // Render method
   render() {
 
@@ -471,35 +822,11 @@ class Add_Danger extends Component {
 
           {this.renderSwitch(this.state.index)}
 
-        
-
           <View style = {{flex: 0, flexDirection: "row"}}>
 
-            <Button
-              outline
-              title = "Anterior"
-              onPress = {this.previous_index.bind(this)}
-              buttonStyle={{ 
-                backgroundColor: "#3f5fe0",
-                borderRadius: 20,
-                // width: 300,
-                // height: 45
-                margin: 10,
-              }}
-            />
+          { this.render_previous_button() }
 
-            <Button
-              outline
-              title = "Siguiente"
-              onPress = {this.next_index.bind(this)}
-              buttonStyle={{ 
-                backgroundColor: "#3f5fe0",
-                borderRadius: 20,
-                // width: 300,
-                // height: 45
-                margin: 10,
-              }}
-            />
+          { this.render_next_button() }
 
           </View>
           
